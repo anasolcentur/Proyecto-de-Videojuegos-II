@@ -5,7 +5,7 @@ public class SplashManager : MonoBehaviour
 {
     void Start()
     {
-        Invoke("GoToMenu", 2f);
+        Invoke(nameof(GoToMenu), 2f);
     }
 
     void GoToMenu()
