@@ -4,12 +4,7 @@ using UnityEngine.UI;
 
 public class HiloGameplayManager : MonoBehaviour
 {
-    [Header("Textos de la UI")]
-    [SerializeField] private TextMeshProUGUI connectionText;
-    [SerializeField] private TextMeshProUGUI fragmentsText;
-    [SerializeField] private TextMeshProUGUI messageText;
-
-    [Header("Botón principal")]
+    [Header("Boton principal")]
     [SerializeField] private Button pullThreadButton;
     [SerializeField] private TextMeshProUGUI pullThreadButtonText;
 
@@ -18,6 +13,12 @@ public class HiloGameplayManager : MonoBehaviour
     private int emotionalConnection = 0;
     private int memoryFragments = 0;
 
+    private void Awake()
+    {
+        Debug.Assert(pullThreadButton != null, "HiloGameplayManager: falta asignar Pull Thread Button.");
+        Debug.Assert(pullThreadButtonText != null, "HiloGameplayManager: falta asignar Pull Thread Button Text.");
+    }
+
     private void Start()
     {
         if (pullThreadButton != null)
@@ -25,7 +26,7 @@ public class HiloGameplayManager : MonoBehaviour
             pullThreadButton.onClick.AddListener(PullThread);
         }
 
-        UpdateUI();
+        RaiseProgressEvent();
     }
 
     private void OnDestroy()
@@ -46,59 +47,55 @@ public class HiloGameplayManager : MonoBehaviour
         emotionalConnection++;
         memoryFragments++;
 
-        UpdateUI();
-    }
-
-    private void UpdateUI()
-    {
-        if (connectionText != null)
-        {
-            connectionText.text = "Conexión emocional: " + emotionalConnection + " / " + MaxProgress;
-        }
-
-        if (fragmentsText != null)
-        {
-            fragmentsText.text = "Fragmentos de memoria: " + memoryFragments + " / " + MaxProgress;
-        }
-
-        if (messageText != null)
-        {
-            if (memoryFragments == 0)
-            {
-                messageText.text = "El hilo rojo espera tu decisión.";
-            }
-            else if (memoryFragments == 1)
-            {
-                messageText.text = "Un eco lejano responde al hilo.";
-            }
-            else if (memoryFragments == 2)
-            {
-                messageText.text = "Un recuerdo comienza a tomar forma.";
-            }
-            else
-            {
-                messageText.text = "El primer recuerdo se desbloqueó. El destino comienza a despertar.";
-            }
-        }
+        RaiseProgressEvent();
 
         if (memoryFragments >= MaxProgress)
         {
-            if (pullThreadButton != null)
-            {
-                pullThreadButton.interactable = false;
-            }
-
-            if (pullThreadButtonText != null)
-            {
-                pullThreadButtonText.text = "RECUERDO DESBLOQUEADO";
-            }
+            CompleteMemoryUnlock();
         }
-        else
+    }
+
+    private void RaiseProgressEvent()
+    {
+        string message = GetCurrentMessage();
+
+        HiloGameplayEvents.RaiseHiloProgressChanged(
+            emotionalConnection,
+            memoryFragments,
+            message
+        );
+    }
+
+    private string GetCurrentMessage()
+    {
+        if (memoryFragments == 0)
         {
-            if (pullThreadButtonText != null)
-            {
-                pullThreadButtonText.text = "TIRAR DEL HILO";
-            }
+            return "El hilo rojo espera tu decision.";
+        }
+
+        if (memoryFragments == 1)
+        {
+            return "Un eco lejano responde al hilo.";
+        }
+
+        if (memoryFragments == 2)
+        {
+            return "Un recuerdo comienza a tomar forma.";
+        }
+
+        return "El primer recuerdo se desbloqueo. El destino comienza a despertar.";
+    }
+
+    private void CompleteMemoryUnlock()
+    {
+        if (pullThreadButton != null)
+        {
+            pullThreadButton.interactable = false;
+        }
+
+        if (pullThreadButtonText != null)
+        {
+            pullThreadButtonText.text = "RECUERDO DESBLOQUEADO";
         }
     }
 }
