@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class HiloGameplayManager : MonoBehaviour
@@ -21,11 +22,15 @@ public class HiloGameplayManager : MonoBehaviour
 
     private void Start()
     {
+        emotionalConnection = GameProgress.CompletedLevels;
+        memoryFragments = GameProgress.CompletedLevels;
+
         if (pullThreadButton != null)
         {
             pullThreadButton.onClick.AddListener(PullThread);
         }
 
+        UpdateButtonState();
         RaiseProgressEvent();
     }
 
@@ -39,20 +44,14 @@ public class HiloGameplayManager : MonoBehaviour
 
     public void PullThread()
     {
-        if (memoryFragments >= MaxProgress)
+        if (GameProgress.HasCompletedAllLevels())
         {
             return;
         }
 
-        emotionalConnection++;
-        memoryFragments++;
+        GameProgress.SelectNextLevel();
 
-        RaiseProgressEvent();
-
-        if (memoryFragments >= MaxProgress)
-        {
-            CompleteMemoryUnlock();
-        }
+        SceneManager.LoadScene("Minigame");
     }
 
     private void RaiseProgressEvent()
@@ -75,27 +74,34 @@ public class HiloGameplayManager : MonoBehaviour
 
         if (memoryFragments == 1)
         {
-            return "Un eco lejano responde al hilo.";
+            return "Primer recuerdo recuperado. El hilo responde.";
         }
 
         if (memoryFragments == 2)
         {
-            return "Un recuerdo comienza a tomar forma.";
+            return "Dos recuerdos recuperados. La memoria toma forma.";
         }
 
-        return "El primer recuerdo se desbloqueo. El destino comienza a despertar.";
+        return "El recuerdo completo se desbloqueo. El destino comienza a despertar.";
     }
 
-    private void CompleteMemoryUnlock()
+    private void UpdateButtonState()
     {
-        if (pullThreadButton != null)
+        if (pullThreadButton == null || pullThreadButtonText == null)
         {
-            pullThreadButton.interactable = false;
+            return;
         }
 
-        if (pullThreadButtonText != null)
+        if (GameProgress.HasCompletedAllLevels())
         {
+            pullThreadButton.interactable = false;
             pullThreadButtonText.text = "RECUERDO DESBLOQUEADO";
+            return;
         }
+
+        int nextLevel = GameProgress.GetNextLevel();
+
+        pullThreadButton.interactable = true;
+        pullThreadButtonText.text = "ENTRAR AL RECUERDO " + nextLevel;
     }
 }
